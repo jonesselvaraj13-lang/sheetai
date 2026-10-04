@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SheetAI — Admin Panel</title>
+    <link rel="stylesheet" href="{% static 'sheet_analyzer/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px; position: relative; z-index: 1; }
+        .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
+        .admin-title { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: #fff; }
+        .admin-title span { color: var(--color-primary); }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: 1.5px solid rgba(0,255,224,0.3); border-radius: 10px; color: var(--color-primary); text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+        .back-btn:hover { background: rgba(0,255,224,0.08); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 16px; margin-bottom: 36px; }
+        .stat-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 20px 24px; }
+        .stat-box .lbl { font-size: 0.72rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+        .stat-box .val { font-size: 2rem; font-weight: 800; color: var(--color-primary); }
+        .section { background: rgba(3,4,15,0.85); border: 1.5px solid rgba(0,255,224,0.15); border-radius: 18px; padding: 28px; margin-bottom: 28px; backdrop-filter: blur(20px); }
+        .section-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--color-primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th { padding: 12px 16px; text-align: left; font-size: 0.72rem; font-weight: 700; color: rgba(0,255,224,0.7); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1.5px solid rgba(0,255,224,0.15); background: rgba(0,255,224,0.04); }
+        .admin-table td { padding: 13px 16px; font-size: 0.88rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+        .admin-table tr:hover td { background: rgba(0,255,224,0.03); }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; }
+        .badge-super { background: rgba(167,139,250,0.15); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.3); }
+        .badge-user  { background: rgba(0,255,224,0.08); color: #00ffe0; border: 1px solid rgba(0,255,224,0.2); }
+        .badge-active { background: rgba(16,185,129,0.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+        .btn-del { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: transparent; border: 1.5px solid rgba(239,68,68,0.4); border-radius: 8px; color: #f87171; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: var(--font-body); transition: all 0.2s; text-decoration: none; }
+        .btn-del:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.8); }
+        .create-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto auto; gap: 12px; align-items: end; flex-wrap: wrap; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 0.75rem; font-weight: 700; color: rgba(0,255,224,0.65); text-transform: uppercase; letter-spacing: 0.08em; }
+        .form-input { height: 40px; padding: 0 14px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(0,255,224,0.2); border-radius: 10px; color: #e2e8f0; font-size: 0.88rem; font-family: var(--font-body); outline: none; transition: border 0.2s; }
+        .form-input:focus { border-color: rgba(0,255,224,0.6); }
+        .btn-create { height: 40px; padding: 0 20px; background: rgba(0,255,224,0.12); border: 1.5px solid rgba(0,255,224,0.4); border-radius: 10px; color: var(--color-primary); font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: var(--font-body); transition: all 0.2s; white-space: nowrap; }
+        .btn-create:hover { background: rgba(0,255,224,0.2); }
+        .check-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: rgba(255,255,255,0.6); padding-top: 20px; }
+        .msg-box { padding: 12px 18px; background: rgba(16,185,129,0.1); border: 1.5px solid rgba(16,185,129,0.3); border-radius: 10px; color: #6ee7b7; font-size: 0.88rem; font-weight: 600; margin-bottom: 24px; }
+        .overflow-x { overflow-x: auto; }
+        @media(max-width:768px){ .create-form{ grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div id="aurora">
+        <div class="aurora-band"></div><div class="aurora-band"></div>
+        <div class="aurora-band"></div><div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+    </div>
+
+    <div class="admin-wrap">
+
+        <!-- Header -->
+        <div class="admin-header">
+            <h1 class="admin-title">Sheet<span>AI</span> &mdash; Admin Panel</h1>
+            <a href="/" class="back-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Dashboard
+            </a>
+        </div>
+
+        {% if msg %}
+        <div class="msg-box">{{ msg }}</div>
+        {% endif %}
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="lbl">Total Users</div>
+                <div class="val">{{ total_users }}</div>
+            </div>
+            <div class="stat-box">
+                <div class="lbl">Total Records</div>
+                <div class="val">{{ total_records }}</div>
+            </div>
+            <div class="stat-box">
+                <div class="lbl">Logged in as</div>
+                <div class="val" style="font-size:1.1rem;padding-top:4px">{{ request.user.username }}</div>
+            </div>
+        </div>
+
+        <!-- Create User -->
+        <div class="section">
+            <div class="section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Create New User
+            </div>
+            <form method="post" action="/panel/create-user/">
+                {% csrf_token %}
+                <div class="create-form">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-input" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-input" placeholder="Enter email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-input" placeholder="Enter password" required>
+                    </div>
+                    <div class="check-wrap">
+                        <input type="checkbox" name="is_superuser" id="isSuperuser" class="admin-checkbox">
+                        <label for="isSuperuser">Superuser</label>
+                    </div>
+                    <div style="padding-top:20px">
+                        <button type="submit" class="btn-create">Create User</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <div class="section">
+            <div class="section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                All Users ({{ total_users }})
+            </div>
+            <div class="overflow-x">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Last Login</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td style="color:rgba(0,255,224,0.5);font-weight:700">{{ forloop.counter }}</td>
+                            <td style="color:#e2e8f0;font-weight:600">{{ u.username }}</td>
+                            <td>{{ u.email|default:"-" }}</td>
+                            <td>
+                                {% if u.is_superuser %}
+                                    <span class="badge badge-super">Superuser</span>
+                                {% else %}
+                                    <span class="badge badge-user">User</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.is_active %}
+                                    <span class="badge badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge badge-inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.date_joined|date:"d M Y" }}</td>
+                            <td>{{ u.last_login|date:"d M Y, H:i"|default:"Never" }}</td>
+                            <td>
+                                {% if u.id != request.user.id %}
+                                <a href="/panel/delete-user/{{ u.id }}/"
+                                   class="btn-del"
+                                   onclick="return confirm('Delete user {{ u.username }}?')">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    Delete
+                                </a>
+                                {% else %}
+                                <span class="you-label">You</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:32px">No users found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Upload Records Table -->
+        <div class="section">
+            <div class="section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                Upload Records ({{ total_records }})
+            </div>
+            <div class="overflow-x">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>File / URL</th>
+                            <th>Prompt</th>
+                            <th>Uploaded At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td style="color:rgba(0,255,224,0.5);font-weight:700">{{ forloop.counter }}</td>
+                            <td style="color:#e2e8f0;max-width:260px;word-break:break-all">{{ r.filename }}</td>
+                            <td style="max-width:300px;color:rgba(255,255,255,0.55)">
+                                {{ r.prompt|default:"—"|truncatechars:60 }}
+                            </td>
+                            <td style="white-space:nowrap">{{ r.uploaded_at|date:"d M Y, H:i" }}</td>
+                            <td>
+                                <a href="/panel/delete-record/{{ r.pk }}/"
+                                   class="btn-del"
+                                   onclick="return confirm('Delete this record?')">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:32px">No records found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

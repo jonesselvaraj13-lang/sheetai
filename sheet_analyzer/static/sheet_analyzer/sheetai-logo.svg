@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SheetAI logo">
+  <defs>
+    <linearGradient id="sheetai-bg" x1="80" y1="64" x2="432" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="sheetai-card" x1="132" y1="116" x2="380" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EAF6FF"/>
+    </linearGradient>
+    <filter id="sheetai-shadow" x="42" y="46" width="428" height="436" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="18"/>
+      <feGaussianBlur stdDeviation="20"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.035 0 0 0 0 0.114 0 0 0 0 0.298 0 0 0 0.18 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#sheetai-bg)"/>
+  <circle cx="394" cy="116" r="64" fill="#FFFFFF" fill-opacity="0.14"/>
+  <circle cx="120" cy="406" r="86" fill="#0F172A" fill-opacity="0.08"/>
+  <g filter="url(#sheetai-shadow)">
+    <rect x="104" y="94" width="304" height="324" rx="44" fill="url(#sheetai-card)"/>
+    <rect x="134" y="128" width="244" height="256" rx="24" fill="#F8FBFF" stroke="#BFDBFE" stroke-width="8"/>
+    <path d="M134 194H378" stroke="#C7DDF6" stroke-width="8"/>
+    <path d="M134 260H378" stroke="#C7DDF6" stroke-width="8"/>
+    <path d="M134 326H378" stroke="#C7DDF6" stroke-width="8"/>
+    <path d="M214 128V384" stroke="#C7DDF6" stroke-width="8"/>
+    <path d="M296 128V384" stroke="#C7DDF6" stroke-width="8"/>
+    <path d="M162 321L220 270L268 292L348 210" stroke="#2563EB" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="220" cy="270" r="17" fill="#10B981" stroke="#FFFFFF" stroke-width="8"/>
+    <circle cx="268" cy="292" r="17" fill="#10B981" stroke="#FFFFFF" stroke-width="8"/>
+    <circle cx="348" cy="210" r="17" fill="#2563EB" stroke="#FFFFFF" stroke-width="8"/>
+    <path d="M356 144L366 168L390 178L366 188L356 212L346 188L322 178L346 168L356 144Z" fill="#10B981"/>
+  </g>
+</svg>

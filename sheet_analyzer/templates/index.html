@@ -1,0 +1,794 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SheetAnalyzer</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'sheet_analyzer/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'sheet_analyzer/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Aurora Background -->
+    <div id="aurora">
+        <div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="{% url 'upload_query' %}" class="sidebar-logo" title="Refresh dashboard">
+            <img class="brand-logo-img" src="{% static 'sheetai-logo.svg' %}" alt="SheetAnalyzer logo">
+            <span class="logo-text">Sheet<span class="logo-accent">Analyzer</span></span>
+        </a>
+
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active">
+                <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="#upload" class="nav-item">
+                <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Upload</span>
+            </a>
+            <a href="#history" class="nav-item">
+                <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>History</span>
+            </a>
+            <a href="#settings" class="nav-item">
+                <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2 5.2l-4.2-4.2m-6 0l-4.2 4.2"></path>
+                </svg>
+                <span>Settings</span>
+            </a>
+            {% if request.user.is_superuser %}
+            <a href="/panel/" class="nav-item">
+                <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>Admin Panel</span>
+            </a>
+            {% endif %}
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <form method="post" enctype="multipart/form-data" action="{% url 'upload_profile_photo' %}" class="profile-photo-form">
+                {% csrf_token %}
+                <input type="file" name="photo" accept="image/*" id="sidebarPhotoInput" class="profile-photo-input">
+                <button type="button" class="user-avatar profile-photo-trigger" title="Upload profile photo" aria-label="Upload profile photo">
+                    {% if user_profile.photo %}
+                        <img src="{{ user_profile.photo.url }}" alt="Profile Photo" class="avatar-img">
+                    {% else %}
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    {% endif %}
+                </button>
+            </form>
+            <div class="user-info">
+                <span class="user-name">{{ request.user.username }}</span>
+                <form method="post" action="/logout/" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-link">Sign out</button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">SheetAnalyzer Dashboard</h1>
+                <span class="page-sub">Analyze spreadsheets, documents & URLs with AI</span>
+            </div>
+
+        </header>
+
+        <!-- Stat Cards -->
+        <section class="stats-row" id="dashboard">
+            <div class="stat-card stat-purple">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Formats</span>
+                    <span class="stat-value">5+</span>
+                </div>
+            </div>
+            <div class="stat-card stat-cyan">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">AI Model</span>
+                    <span class="stat-value">GPT-4o</span>
+                </div>
+            </div>
+            <div class="stat-card stat-green">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Processing</span>
+                    <span class="stat-value">Real-time</span>
+                </div>
+            </div>
+            <div class="stat-card stat-amber">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Queries</span>
+                    <span class="stat-value">Unlimited</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section class="upload-section" id="upload">
+            <div class="card upload-card">
+                <div class="card-header">
+                    <div class="card-title-wrap">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span class="card-title">Upload & Analyze</span>
+                    </div>
+                    <span class="card-badge">CSV / XLSX / PDF / DOCX / URL / Compare</span>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+
+                    <div id="singleMode">
+                        <div class="drop-zone" id="dropZone">
+                            <div class="drop-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                            </div>
+                            <p class="drop-title">Drag & drop your file here</p>
+                            <p class="drop-sub">or click to browse from your device</p>
+                            {{ form.file }}
+                            {% if viewed_record %}
+                                <input type="hidden" name="record_id" value="{{ viewed_record.pk }}">
+                            {% endif %}
+                            <div class="file-name" id="fileName">
+                                {% if viewed_record and viewed_record.file and viewed_record.file.name %}
+                                    {{ viewed_record.filename }}
+                                {% elif viewed_record and viewed_record.url_link %}
+                                    Using URL: {{ viewed_record.url_link }}
+                                {% else %}
+                                    No file selected
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="url-section">
+                            <label class="input-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                Or paste a URL (CSV / Excel / Web page)
+                            </label>
+                            <input type="text" name="url_link" class="prompt-input" placeholder="https://example.com/data.csv" autocomplete="off" value="{{ viewed_record.url_link|default_if_none:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="prompt-section prompt-dock" id="promptSection" {% if not has_active_source %}hidden{% endif %}>
+                        <label class="input-label">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            Ask AI about your data
+                        </label>
+                        <div class="prompt-wrap">
+                            <input
+                                type="text"
+                                name="prompt"
+                                class="prompt-input"
+                                placeholder="e.g., show top 10 rows, sort by price desc, count by category, filter age > 25, describe data..."
+                                autocomplete="off"
+                                value=""
+                            >
+                            <button type="submit" class="send-btn" title="Analyze">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+        <!-- Result Section -->
+        {% if data %}
+        <section class="card result-card">
+            <div class="card-header">
+                <div class="card-title-wrap">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    <span class="card-title">AI Analysis Result</span>
+                </div>
+                <span class="result-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Complete
+                </span>
+            </div>
+            <div class="result-body">{{ data|safe }}</div>
+        </section>
+        {% endif %}
+
+        <!-- Data Quality Section -->
+        {% if quality_data %}
+        <section class="card quality-card" id="quality">
+            <div class="card-header">
+                <div class="card-title-wrap">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <span class="card-title">Data Quality Report</span>
+                </div>
+                <span class="card-badge">{{ quality_data.total_rows }} rows · {{ quality_data.total_cols }} cols</span>
+            </div>
+
+            <!-- Overall Score -->
+            <div class="quality-overview">
+                <div class="quality-score-wrap">
+                    <div class="quality-score-ring">
+                        <svg width="120" height="120" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="#2563eb" stroke-width="10"
+                                stroke-dasharray="314"
+                                stroke-dashoffset="{{ quality_data.overall_noise_pct|floatformat:0 }}"
+                                stroke-linecap="round"
+                                transform="rotate(-90 60 60)"
+                                style="stroke-dashoffset: calc(314 * {{ quality_data.overall_noise_pct }} / 100);"/>
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="#f87171" stroke-width="10"
+                                stroke-dasharray="314"
+                                stroke-dashoffset="0"
+                                stroke-linecap="round"
+                                transform="rotate(-90 60 60)"
+                                style="stroke-dashoffset: calc(314 * {{ quality_data.overall_clean_pct }} / 100); opacity:0.4;"/>
+                        </svg>
+                        <div class="quality-score-label">
+                            <span class="quality-score-num">{{ quality_data.overall_clean_pct }}%</span>
+                            <span class="quality-score-sub">Clean</span>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="quality-stats-grid">
+                    <div class="quality-stat clean">
+                        <div class="quality-stat-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="quality-stat-val">{{ quality_data.overall_clean_pct }}%</div>
+                            <div class="quality-stat-lbl">Clean Data</div>
+                        </div>
+                    </div>
+                    <div class="quality-stat noise">
+                        <div class="quality-stat-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="quality-stat-val">{{ quality_data.overall_noise_pct }}%</div>
+                            <div class="quality-stat-lbl">Noise Data</div>
+                        </div>
+                    </div>
+                    <div class="quality-stat duplicate">
+                        <div class="quality-stat-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                </div>
+                        <div>
+                            <div class="quality-stat-val">{{ quality_data.duplicate_rows }}</div>
+                            <div class="quality-stat-lbl">Duplicate Rows</div>
+                        </div>
+                    </div>
+                    <div class="quality-stat total">
+                        <div class="quality-stat-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="quality-stat-val">{{ quality_data.total_rows }}</div>
+                            <div class="quality-stat-lbl">Total Rows</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per-column breakdown -->
+            <div class="quality-columns">
+                <div class="quality-col-header">
+                    <span>Column</span>
+                    <span>Type</span>
+                    <span>Missing</span>
+                    <span>Outliers</span>
+                    <span style="min-width:200px;">Clean / Noise</span>
+                </div>
+                {% for col in quality_data.columns %}
+                <div class="quality-col-row">
+                    <span class="qcol-name">{{ col.name }}</span>
+                    <span class="qcol-type">{{ col.dtype }}</span>
+                    <span class="qcol-missing {% if col.missing > 0 %}has-issue{% endif %}">{{ col.missing }}</span>
+                    <span class="qcol-outliers {% if col.outliers > 0 %}has-issue{% endif %}">{{ col.outliers }}</span>
+                    <div class="qcol-bar-wrap">
+                        <div class="qcol-bar">
+                            <div class="qcol-bar-clean" style="width: {{ col.clean_pct }}%"></div>
+                            <div class="qcol-bar-noise" style="width: {{ col.noise_pct }}%"></div>
+                        </div>
+                        <span class="qcol-pct clean">{{ col.clean_pct }}%</span>
+                        <span class="qcol-pct noise">{{ col.noise_pct }}%</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- History Section -->
+        <section class="card history-card" id="history">
+            <div class="card-header">
+                <div class="card-title-wrap">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="card-title">Upload History</span>
+                </div>
+                <span class="card-badge">{{ history|length }} record{{ history|length|pluralize }}</span>
+            </div>
+
+            {% if history %}
+            <div class="history-table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>File Name</th>
+                            <th>Prompt</th>
+                            <th>Uploaded At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        {% for record in history %}
+                        <tr>
+                            <td class="td-num">{{ forloop.counter }}</td>
+                            <td class="td-file">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <span>{{ record.filename }}</span>
+                            </td>
+                            <td class="td-prompt">
+                                {% if record.prompt %}
+                                    {{ record.prompt }}
+                                {% else %}
+                                    <span class="no-prompt">No prompt</span>
+                                {% endif %}
+                            </td>
+                            <td class="td-date">{{ record.uploaded_at|date:"d M Y, H:i" }}</td>
+                            <td class="td-action">
+                                <div class="action-btns">
+                                    <form method="post" action="/view/{{ record.pk }}/">
+                                        {% csrf_token %}
+                                        <button type="submit" class="view-btn">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            View
+                                        </button>
+                                    </form>
+                                    {% if not record.url_link or 'wikipedia.org' not in record.url_link %}
+                                        <a href="{% url 'edit_data' record.pk %}" class="edit-btn">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                            </svg>
+                                            Edit
+                                        </a>
+                                    {% endif %}
+
+                                    <form method="post" action="{% url 'delete_record' record.pk %}" onsubmit="return confirm('Delete this record permanently?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="delete-btn">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <p class="empty-title">No upload history yet</p>
+                <p class="empty-sub">Upload your first file to start analyzing data with AI</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Settings Section -->
+        <section class="card settings-card" id="settings">
+            <div class="card-header">
+                <div class="card-title-wrap">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span class="card-title">Settings</span>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+
+                <!-- Profile Photo -->
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="settings-item-title">Profile Photo</p>
+                            <p class="settings-item-desc">Upload your profile picture</p>
+                        </div>
+                    </div>
+                    <form method="post" enctype="multipart/form-data" action="{% url 'upload_profile_photo' %}" style="display: flex; gap: 10px; align-items: center; margin: 0;">
+                        {% csrf_token %}
+                        <input type="file" name="photo" accept="image/*" id="photoInput" style="display: none;">
+                        <button type="button" class="settings-btn" onclick="document.getElementById('photoInput').click()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Upload
+                        </button>
+                        {% if user_profile.photo %}
+                        <a href="{% url 'delete_profile_photo' %}" class="settings-btn" style="background: #ef4444; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; gap: 6px; align-items: center; font-size: 14px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            Delete
+                        </a>
+                        {% endif %}
+                        <script>
+                            document.getElementById('photoInput').addEventListener('change', function() {
+                                if (this.files.length > 0) {
+                                    this.closest('form').submit();
+                                }
+                            });
+                        </script>
+                    </form>
+                </div>
+
+                <!-- Change Password -->
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-icon cyan">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="settings-item-title">Change Password</p>
+                            <p class="settings-item-desc">Update your SheetAnalyzer account password</p>
+                        </div>
+                    </div>
+                    <a href="/change-password/" class="settings-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        Change
+                    </a>
+                </div>
+
+                <!-- Clear All History -->
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-icon danger">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="settings-item-title">Clear All History</p>
+                            <p class="settings-item-desc">Permanently delete all uploaded files and query history</p>
+                        </div>
+                    </div>
+                    <form method="post" action="/clear-history/" onsubmit="return confirm('This will delete ALL history permanently. Are you sure?')">
+                        {% csrf_token %}
+                        <button type="submit" class="settings-btn danger">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            Clear All
+                        </button>
+                    </form>
+                </div>
+
+
+
+                <!-- Total Records -->
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-icon cyan">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="settings-item-title">Total Records</p>
+                            <p class="settings-item-desc">{{ history|length }} file{{ history|length|pluralize }} uploaded in history</p>
+                        </div>
+                    </div>
+                    <span class="settings-count">{{ history|length }}</span>
+                </div>
+
+                <!-- Logged in as -->
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <div class="settings-item-icon green">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="settings-item-title">Logged in as</p>
+                            <p class="settings-item-desc">{{ request.user.username }} &mdash; active session</p>
+                        </div>
+                    </div>
+                    <form method="post" action="/logout/">
+                        {% csrf_token %}
+                        <button type="submit" class="settings-btn danger">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Sign Out
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const promptSection = document.getElementById('promptSection');
+        const fileInput = document.querySelector('#singleMode input[type="file"]');
+        const urlInput = document.querySelector('input[name="url_link"]');
+        const dropZone = document.getElementById('dropZone');
+
+        function updatePromptVisibility() {
+            if (!promptSection) return;
+            const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+            const hasUrl = urlInput && urlInput.value.trim().length > 0;
+            const hasViewedRecord = Boolean(document.querySelector('input[name="record_id"]'));
+            promptSection.hidden = !(hasFile || hasUrl || hasViewedRecord);
+        }
+
+        // File input handler
+        if (fileInput) {
+            fileInput.addEventListener('change', () => {
+                const el = document.getElementById('fileName');
+                if (el) el.textContent = fileInput.files[0] ? fileInput.files[0].name : 'No file selected';
+                updatePromptVisibility();
+            });
+        }
+
+        if (urlInput && fileInput) {
+            urlInput.addEventListener('input', () => {
+                if (urlInput.value.trim()) {
+                    fileInput.value = '';
+                    const el = document.getElementById('fileName');
+                    if (el) el.textContent = 'Using pasted URL';
+                    if (dropZone) dropZone.classList.remove('has-file');
+                }
+                updatePromptVisibility();
+            });
+        }
+
+        // Drop zone for single mode
+        if (dropZone) {
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                if (fileInput && e.dataTransfer.files[0]) {
+                    fileInput.files = e.dataTransfer.files;
+                    document.getElementById('fileName').textContent = e.dataTransfer.files[0].name;
+                    dropZone.classList.add('has-file');
+                    updatePromptVisibility();
+                }
+            });
+        }
+
+        // Live search filter for history
+        const searchInput = document.getElementById('historySearch');
+        const searchCount = document.getElementById('searchCount');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                const rows = document.querySelectorAll('#historyTableBody tr');
+                let visible = 0;
+                rows.forEach(row => {
+                    const file = row.querySelector('.td-file span') ? row.querySelector('.td-file span').textContent.toLowerCase() : '';
+                    const prompt = row.querySelector('.td-prompt') ? row.querySelector('.td-prompt').textContent.toLowerCase() : '';
+                    const match = !q || file.includes(q) || prompt.includes(q);
+                    row.style.display = match ? '' : 'none';
+                    if (match) visible++;
+                });
+                searchCount.textContent = visible + ' record' + (visible !== 1 ? 's' : '');
+            });
+        }
+
+        // Auto-scroll to result after form submit
+        const resultCard = document.querySelector('.result-card');
+        if (resultCard) {
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // If a record was loaded for reuse, show the upload section
+        const viewedRecordInput = document.querySelector('input[name="record_id"]');
+        if (viewedRecordInput) {
+            const uploadSection = document.querySelector('#upload');
+            if (uploadSection) uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Loading state on form submit
+        const uploadForm = document.getElementById('uploadForm');
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', function() {
+                const btn = this.querySelector('.send-btn');
+                if (btn) {
+                    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
+                    btn.disabled = true;
+                }
+            });
+        }
+
+        const sidebarPhotoInput = document.getElementById('sidebarPhotoInput');
+        const sidebarPhotoTrigger = document.querySelector('.profile-photo-trigger');
+        if (sidebarPhotoInput && sidebarPhotoTrigger) {
+            sidebarPhotoTrigger.addEventListener('click', () => sidebarPhotoInput.click());
+            sidebarPhotoInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    this.closest('form').submit();
+                }
+            });
+        }
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('.nav-item').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href.startsWith('#')) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Keep the sidebar option matched to the section currently in view
+        const sectionLinks = Array.from(document.querySelectorAll('.nav-item[href^="#"]'));
+        const sections = sectionLinks
+            .map(link => ({
+                link,
+                section: document.querySelector(link.getAttribute('href'))
+            }))
+            .filter(item => item.section);
+
+        function updateActiveSidebarItem() {
+            if (!sections.length) return;
+
+            const scrollPoint = window.scrollY + 180;
+            let current = sections[0];
+
+            sections.forEach(item => {
+                if (item.section.offsetTop <= scrollPoint) {
+                    current = item;
+                }
+            });
+
+            sectionLinks.forEach(link => link.classList.remove('active'));
+            current.link.classList.add('active');
+        }
+
+        window.addEventListener('scroll', updateActiveSidebarItem, { passive: true });
+        window.addEventListener('resize', updateActiveSidebarItem);
+        updateActiveSidebarItem();
+    </script>
+</body>
+</html>

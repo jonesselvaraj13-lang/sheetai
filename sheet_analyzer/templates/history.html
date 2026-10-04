@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SheetAI - History</title>
+    <link rel="stylesheet" href="{% static 'sheet_analyzer/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Aurora Background -->
+    <div id="aurora">
+        <div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+        <div class="aurora-band"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="{% url 'upload_query' %}" class="sidebar-logo" title="Refresh dashboard">
+            <img class="brand-logo-img" src="{% static 'sheetai-logo.svg' %}" alt="SheetAI logo">
+            <span class="logo-text">Sheet<span class="logo-accent">AI</span></span>
+        </a>
+        <nav class="sidebar-nav">
+            <a href="{% url 'upload_query' %}" class="nav-item">
+                <span class="nav-icon">◈</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'upload_query' %}" class="nav-item">
+                <span class="nav-icon">⬆</span>
+                <span>Upload</span>
+            </a>
+            <a href="{% url 'upload_query' %}" class="nav-item">
+                <span class="nav-icon">◉</span>
+                <span>Analysis</span>
+            </a>
+            <a href="{% url 'history' %}" class="nav-item active">
+                <span class="nav-icon">◎</span>
+                <span>History</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-avatar">AI</div>
+            <div class="user-info">
+                <span class="user-name">Analyst</span>
+                <span class="user-role">Pro Plan</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Upload History</h1>
+                <span class="page-sub">All your past file uploads and AI queries</span>
+            </div>
+            <div class="topbar-right">
+                <div class="status-pill">
+                    <span class="status-dot"></span>
+                    {{ records|length }} Record{{ records|length|pluralize }}
+                </div>
+            </div>
+        </header>
+
+        <div class="card history-card">
+            <div class="card-header">
+                <span class="card-title">Query History</span>
+                <span class="card-badge">{{ records|length }} total</span>
+            </div>
+
+            {% if records %}
+            <div class="history-table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>File Name</th>
+                            <th>Prompt</th>
+                            <th>Uploaded At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td class="td-num">{{ forloop.counter }}</td>
+                            <td class="td-file">
+                                <span class="file-icon" aria-hidden="true">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                </span>
+                                {{ record.filename }}
+                            </td>
+                            <td class="td-prompt">
+                                {% if record.prompt %}
+                                    {{ record.prompt }}
+                                {% else %}
+                                    <span class="no-prompt">No prompt</span>
+                                {% endif %}
+                            </td>
+                            <td class="td-date">{{ record.uploaded_at|date:"d M Y, H:i" }}</td>
+                            <td class="td-action">
+                                <form method="post" action="{% url 'delete_record' record.pk %}" onsubmit="return confirm('Delete this record?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="delete-btn">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon" aria-hidden="true">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <p class="empty-title">No history yet</p>
+                <p class="empty-sub">Upload a file from the dashboard to get started</p>
+                <a href="{% url 'upload_query' %}" class="analyze-btn" style="display:inline-flex; width:auto; margin-top:20px; text-decoration:none;">
+                    Go to Dashboard
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+</body>
+</html>
